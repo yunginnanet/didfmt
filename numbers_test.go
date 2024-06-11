@@ -1,4 +1,4 @@
-package number_format
+package didfmt
 
 import (
 	"bytes"
@@ -177,7 +177,7 @@ func TestNumberFormatter(t *testing.T) { //nolint:funlen //nolint:gocognit
 		t.Logf("output:\n%s", string(out3))
 
 		t.Run("ridiculous", func(t *testing.T) {
-			ridiculous := []byte(`"1 2 8 1))) MIKE JONES 33 oh (0 rather) eight 8 zero 0 zero 0 fo' 4"" hell yeah
+			ridiculous := []byte(`"1 2 8 1))) MIKE JONES 33 oh (0 rather) eight 8 zero 0 zero 0 fo' 4"" :^)
 
 1555 
 
@@ -274,9 +274,9 @@ func TestBenchmark(t *testing.T) {
 			"--------------------------------------\n"+
 			name+" benchmark \n"+
 			"--------------------------------------\n"+
-			"%d nanoseconds per phone number\n"+
+			"took %d nanoseconds per phone number\n"+
 			"allocated memory %d times per phone number\n"+
-			"allocated bytes %d bytes of memory per number\n"+
+			"allocated %d bytes of memory per number\n"+
 			"it took %s to format %d phone numbers\n"+
 			"--------------------------------------\n\n",
 			bres.NsPerOp(),
@@ -378,19 +378,16 @@ func TestBenchmark(t *testing.T) {
 	}
 
 	t.Logf("\n\nRead() is %d%% faster than fmt.Sprintf(),\n"+
-		"allocates %d%% less memory, and allocates %d%% less bytes\n\n",
+		"makes %d%% less allocations to allocate %d%% less bytes.\n\n",
 		(fmtResults.NsPerOp()-readResults.NsPerOp())*100/fmtResults.NsPerOp(),
 		(fmtResults.AllocsPerOp()-readResults.AllocsPerOp())*100/fmtResults.AllocsPerOp(),
 		(fmtResults.AllocedBytesPerOp()-readResults.AllocedBytesPerOp())*100/fmtResults.AllocedBytesPerOp(),
 	)
 
 	t.Logf("\n\nNext() is %d%% faster than fmt.Sprintf(),\n"+
-		"allocates %d%% less memory, and allocates %d%% less bytes\n\n",
+		"makes %d%% less allocations to allocate %d%% less bytes.\n\n",
 		(fmtResults.NsPerOp()-nextResults.NsPerOp())*100/fmtResults.NsPerOp(),
 		(fmtResults.AllocsPerOp()-nextResults.AllocsPerOp())*100/fmtResults.AllocsPerOp(),
 		(fmtResults.AllocedBytesPerOp()-nextResults.AllocedBytesPerOp())*100/fmtResults.AllocedBytesPerOp(),
 	)
-
-	t.Log("\n")
-
 }

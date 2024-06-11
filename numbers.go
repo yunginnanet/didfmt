@@ -1,4 +1,4 @@
-package number_format
+package didfmt
 
 import (
 	"errors"
@@ -36,9 +36,8 @@ func NewNumberFormatter(source io.Reader) *NumberFormatter {
 	return nf
 }
 
-// Reset resets the NumberFormatter to use the provided io.Reader and clears any errors.
-// This is useful for reusing the same NumberFormatter for multiple io.Readers.
-// Note that this does clear the internal buffer.
+// Reset resets the NumberFormatter to use the provided io.Reader.
+// Reset clears any errors, as well as any existing buffered data.
 func (nf *NumberFormatter) Reset(source io.Reader) {
 	nf.Lock()
 	nf.src = source
@@ -47,7 +46,7 @@ func (nf *NumberFormatter) Reset(source io.Reader) {
 	nf.Unlock()
 }
 
-// Close closes the NumberFormatter and any underlying src.(io.Closer).
+// Close closes the NumberFormatter and (if we can cast it to an [io.Closer]) the underlying source.
 func (nf *NumberFormatter) Close() error {
 	nf.Lock()
 	BufferPool.MustPut(nf.buf)
@@ -150,7 +149,6 @@ func (nf *NumberFormatter) Next() string { //nolint:funlen
 }
 
 // Write implements io.Writer. It writes the provided bytes to the internal buffer.
-// If len(p)%11 != 0, it returns an error.
 func (nf *NumberFormatter) Write(p []byte) (n int, err error) {
 	nf.Lock()
 	ogLen := nf.buf.Len()
@@ -189,8 +187,8 @@ func (nf *NumberFormatter) Write(p []byte) (n int, err error) {
 	return n, nil
 }
 
-// Read implements io.Reader. It reads from the internal buffer and then from the underlying io.Reader.
-// It reads formatted phone numbers, separated by newlines, into the provided byte slice.
+// Read implements io.Reader. It formats numbers from the data previously written, and then
+// reads formatted phone numbers into the provided buffer.
 func (nf *NumberFormatter) Read(p []byte) (n int, err error) {
 	switch {
 	case nf.err != nil:
@@ -224,7 +222,6 @@ func (nf *NumberFormatter) Err() error {
 }
 
 // FormatNumberString formats an input phone number string in the format of +1 (123) 456-7890.
-// Input must be exactly 11 bytes long.
 func FormatNumberString(in string) (string, error) {
 	nf := NewNumberFormatter(strings.NewReader(in))
 	return nf.Next(), nf.Err()
