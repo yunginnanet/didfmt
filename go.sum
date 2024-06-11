@@ -1,0 +1,4 @@
+git.tcp.direct/kayos/common v0.9.7 h1:k2k3fvvEFN9JV+0nyVWLoV8cGRDAhS/8ECO9tEKN+to=
+git.tcp.direct/kayos/common v0.9.7/go.mod h1:mmTOIi7k99yygTa1FSOZNoFEEbSTOQV/QpTLUaQU9Tk=
+nullprogram.com/x/rng v1.1.0 h1:SMU7DHaQSWtKJNTpNFIFt8Wd/KSmOuSDPXrMFp/UMro=
+nullprogram.com/x/rng v1.1.0/go.mod h1:glGw6V87vyfawxCzqOABL3WfL95G65az9Z2JZCylCkg=
