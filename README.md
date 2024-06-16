@@ -10,21 +10,22 @@ It is unnecessarily fast, but only supports 11 digit USA numbers. This makes it 
 
 ## ...Why?
 
-This was something I made a while ago for a very specific purpose, and was a small package in a large module. 
+This was something I made a while ago for a very specific purpose, and was a small package in a large module.
 Mostly for fun, I decided to extract the package and do some interesting things with Go's stdlib `testing` package.
 
 ## Faster, or your green checkmark back.
 
 This package, while doing the same thing as the following snippet, is:
-  - faster
-  - allocates less memory as a whole
-  - has less memory allocation operations
+
+- faster
+- allocates less memory as a whole
+- has less memory allocation operations
 
 ```golang
-fmt.Sprintf("+%s (%s) %s-%s", string(inbuf[0]), inbuf[1:4], inbuf[5:8], inbuf[6:10])
+fmt.Sprintf("+%s (%s) %s-%s", string(inbuf[0]), string(inbuf[1:4]), string(inbuf[5:8]), string(inbuf[6:10]))
 ```
 
-#### guaranteed. ***otherwise the unit tests will literally fail :^)***
+#### guaranteed. **_otherwise the unit tests will literally fail :^)_**
 
 ## Yes, I'm serious.
 
@@ -45,11 +46,11 @@ I'll let the output of `go test -v` speak for itself:
 === RUN   TestNumberFormatter/writer/ridiculous
     numbers_test.go:194: input:
         "1 2 8 1))) MIKE JONES 33 oh (0 rather) eight 8 zero 0 zero 0 fo' 4"" :^)
-        
-        1555 
-        
+
+        1555
+
         how's that one song go lmao its like 867 ... uh, 5309? i think?
-        
+
         idfk
     numbers_test.go:207: output:
         +1 (281) 330-8004
@@ -57,69 +58,69 @@ I'll let the output of `go test -v` speak for itself:
 --- PASS: TestNumberFormatter (0.00s)
 [...]
 === RUN   TestBenchmark
-    numbers_test.go:273: 
-        
+    numbers_test.go:273:
+
         --------------------------------------
-        NumberFormatter.Next() benchmark 
+        NumberFormatter.Next() benchmark
         --------------------------------------
-        took 312 nanoseconds per phone number
+        took 335 nanoseconds per phone number
         allocated memory 3 times per phone number
         allocated 72 bytes of memory per number
-        it took 1.198201239s to format 3836050 phone numbers
+        it took 1.197248752s to format 3572934 phone numbers
         --------------------------------------
-        
-    numbers_test.go:273: 
-        
+
+    numbers_test.go:273:
+
         --------------------------------------
-        NumberFormatter.Read() benchmark 
+        NumberFormatter.Read() benchmark
         --------------------------------------
-        took 324 nanoseconds per phone number
+        took 359 nanoseconds per phone number
         allocated memory 3 times per phone number
         allocated 72 bytes of memory per number
-        it took 1.202981817s to format 3704997 phone numbers
+        it took 1.217125671s to format 3389002 phone numbers
         --------------------------------------
-        
-    numbers_test.go:273: 
-        
+
+    numbers_test.go:273:
+
         --------------------------------------
-        fmt.Sprintf() benchmark 
+        fmt.Sprintf() benchmark
         --------------------------------------
-        took 465 nanoseconds per phone number
-        allocated memory 6 times per phone number
-        allocated 116 bytes of memory per number
-        it took 1.212666898s to format 2607760 phone numbers
+        took 518 nanoseconds per phone number
+        allocated memory 9 times per phone number
+        allocated 104 bytes of memory per number
+        it took 1.213136762s to format 2338755 phone numbers
         --------------------------------------
-        
-    numbers_test.go:380: 
-        
+
+    numbers_test.go:380:
+
         Read() is 30% faster than fmt.Sprintf(),
-        makes 50% less allocations to allocate 37% less bytes.
-        
-    numbers_test.go:387: 
-        
-        Next() is 32% faster than fmt.Sprintf(),
-        makes 50% less allocations to allocate 37% less bytes.
-        
---- PASS: TestBenchmark (4.73s)
-PASS
-ok  	git.tcp.direct/kayos/didfmt	4.730s
+        makes 66% less allocations to allocate 30% less bytes.
+
+    numbers_test.go:387:
+
+        Next() is 35% faster than fmt.Sprintf(),
+        makes 66% less allocations to allocate 30% less bytes.
+
+--- PASS: TestBenchmark (4.85s)
 ```
 
 ## Documentation
 
-#### func  FormatNumberBytes
+#### func FormatNumberBytes
 
 ```go
 func FormatNumberBytes(in []byte) (string, error)
 ```
+
 FormatNumberBytes formats an input phone number byte slice in the format of +1
 (123) 456-7890.
 
-#### func  FormatNumberString
+#### func FormatNumberString
 
 ```go
 func FormatNumberString(in string) (string, error)
 ```
+
 FormatNumberString formats an input phone number string in the format of +1
 (123) 456-7890.
 
@@ -133,57 +134,64 @@ type NumberFormatter struct {
 
 NumberFormatter is an optimized DID formatter that formats phone numbers.
 
-#### func  NewNumberFormatter
+#### func NewNumberFormatter
 
 ```go
 func NewNumberFormatter(source io.Reader) *NumberFormatter
 ```
+
 NewNumberFormatter returns a new NumberFormatter.
 
-#### func (*NumberFormatter) Close
+#### func (\*NumberFormatter) Close
 
 ```go
 func (nf *NumberFormatter) Close() error
 ```
+
 Close closes the NumberFormatter and (if we can cast it to an [io.Closer]) the
 underlying source.
 
-#### func (*NumberFormatter) Err
+#### func (\*NumberFormatter) Err
 
 ```go
 func (nf *NumberFormatter) Err() error
 ```
+
 Err returns the error, if any, that occurred during the last call to Next.
 
-#### func (*NumberFormatter) Next
+#### func (\*NumberFormatter) Next
 
 ```go
 func (nf *NumberFormatter) Next() string
 ```
+
 Next returns the next formatted phone number or an empty string if there are no
 more numbers to format.
 
-#### func (*NumberFormatter) Read
+#### func (\*NumberFormatter) Read
 
 ```go
 func (nf *NumberFormatter) Read(p []byte) (n int, err error)
 ```
+
 Read implements io.Reader. It formats numbers from the data previously written,
 and then reads formatted phone numbers into the provided buffer.
 
-#### func (*NumberFormatter) Reset
+#### func (\*NumberFormatter) Reset
 
 ```go
 func (nf *NumberFormatter) Reset(source io.Reader)
 ```
+
 Reset resets the NumberFormatter to use the provided io.Reader. Reset clears any
 errors, as well as any existing buffered data.
 
-#### func (*NumberFormatter) Write
+#### func (\*NumberFormatter) Write
 
 ```go
 func (nf *NumberFormatter) Write(p []byte) (n int, err error)
 ```
+
 Write implements io.Writer. It writes the provided bytes to the internal buffer.
 
 ---

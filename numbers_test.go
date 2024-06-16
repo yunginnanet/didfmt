@@ -222,7 +222,9 @@ type loopingReader struct {
 }
 
 func (l *loopingReader) Read(p []byte) (n int, err error) {
-	l.bench.Helper()
+	if l.bench != nil {
+		l.bench.Helper()
+	}
 	if l.r == nil {
 		panic("nil reader")
 	}
@@ -239,7 +241,9 @@ func (l *loopingReader) Read(p []byte) (n int, err error) {
 	if n == len(p) {
 		return
 	}
-	l.bench.StopTimer()
+	if l.bench != nil {
+		l.bench.StopTimer()
+	}
 	if n < len(p) {
 		// handle short reads by looping back around
 		n2, err2 := io.LimitReader(l.r, int64(len(p)-n)).Read(p)
@@ -248,7 +252,9 @@ func (l *loopingReader) Read(p []byte) (n int, err error) {
 		}
 		n += n2
 	}
-	l.bench.StartTimer()
+	if l.bench != nil {
+		l.bench.StartTimer()
+	}
 	return
 }
 
@@ -267,6 +273,24 @@ func init() {
 func TestBenchmark(t *testing.T) {
 	if testing.Short() {
 		t.Skip("skipping benchmark comparison in short mode")
+	}
+	sane := true
+	t.Run("sanity_check", func(t *testing.T) {
+		inbuf := make([]byte, 11)
+		if n, err := lrd.Read(inbuf); err != nil || n != 11 {
+			panic("FUBAR or n != 11" + err.Error())
+		}
+		fmtOut := fmt.Sprintf("+%s (%s) %s-%s", string(inbuf[0]), string(inbuf[1:4]), string(inbuf[4:7]), string(inbuf[7:11]))
+		nf := NewNumberFormatter(bytes.NewReader(inbuf))
+		if nout := nf.Next(); !strings.EqualFold(nout, fmtOut) {
+			sane = false
+			t.Fatalf("sanity check failed, [Next] doeesn't have parity with fmt.Sprintf:\n"+
+				"sprintf: %s, Next: %s", fmtOut, nout)
+		}
+	})
+
+	if !sane {
+		panic("she's dead, jim.")
 	}
 
 	printResults := func(name string, bres testing.BenchmarkResult) {
@@ -322,7 +346,7 @@ func TestBenchmark(t *testing.T) {
 			if err != nil {
 				panic(err)
 			}
-			if n != 17 && string(out) != "" {
+			if n != 17 {
 				panic("bad length")
 			}
 		}
@@ -345,7 +369,7 @@ func TestBenchmark(t *testing.T) {
 			if err != nil {
 				panic(err)
 			}
-			outbuf := fmt.Sprintf("+%s (%s) %s-%s", string(inbuf[0]), inbuf[1:4], inbuf[5:8], inbuf[6:10])
+			outbuf := fmt.Sprintf("+%s (%s) %s-%s", string(inbuf[0]), string(inbuf[1:4]), string(inbuf[5:8]), string(inbuf[6:10]))
 			if len(outbuf) != 17 {
 				panic("bad length")
 			}
