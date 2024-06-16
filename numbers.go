@@ -156,10 +156,16 @@ func (nf *NumberFormatter) Write(p []byte) (n int, err error) {
 	switch {
 	case len(p) == 0:
 		nf.Unlock()
-		return 0, fmt.Errorf("invalid length: %d", len(p))
-	case nf.err != nil:
-		nf.Unlock()
-		return 0, nf.err
+		return 0, fmt.Errorf("%w: len(p) == %d", io.ErrShortWrite, len(p))
+		// ---------------------------
+		//	case nf.err != nil:
+		//		nf.Unlock()
+		//		return 0, fmt.Errorf("error from previous write: %w" nf.err
+		// ---------------------------
+		// because nf.err was incurred during reading and isn't a write error,
+		// the caller just needs to use the Err method, read errors shouldn't
+		// be causing writes to fail
+		// ---------------------------
 	case nf.closed:
 		nf.Unlock()
 		return 0, io.ErrClosedPipe
